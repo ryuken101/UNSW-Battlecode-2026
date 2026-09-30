@@ -35,7 +35,42 @@ def neighbours(pos):
         _nbr_cache[k] = out
     return out
 
+# Checking for open space at the start of the round
+def open_space(start, limit=40):
+    """How many free tiles you can reach from start (within the 7x7 window)."""
+    p = start.get_position()
+    seen = {(p.x, p.y)}
+    q = deque([start])
+    while q and len(seen) < limit:
+        t = q.popleft()
+        for _, n in neighbours(t.get_position()):
+            np_ = n.get_position()
+            k = (np_.x, np_.y)
+            if k not in seen:
+                seen.add(k)
+                q.append(n)
+    return len(seen)
 
+# Getting the shortest path to a visible pearl 
+def pearl_dir(here):
+    """First step of the shortest safe path to a visible pearl, or None."""
+    seen = {(here.x, here.y)}
+    q = deque()
+    for d, t in neighbours(here):
+        p = t.get_position()
+        seen.add((p.x, p.y))
+        q.append((t, d))
+    while q:
+        t, first = q.popleft()
+        if t.has_pearl():
+            return first
+        for _, n in neighbours(t.get_position()):
+            p = n.get_position()
+            k = (p.x, p.y)
+            if k not in seen:
+                seen.add(k)
+                q.append((n, first))
+    return None
 
 
 def execute_turn() -> None:
